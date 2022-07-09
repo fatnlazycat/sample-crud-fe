@@ -89,6 +89,8 @@ export const List = (): JSX.Element => {
     carouselRef.current?.goTo(index, false);
   }, [currentNote, notes, carouselRef]);
 
+  
+  // callbacks
   const onModalSubmit = useCallback((note: Note) => {
     saveNote(note);
     setModalState(0);
@@ -112,6 +114,7 @@ export const List = (): JSX.Element => {
   const showModalForCreate = useCallback(() => setModalState(MODAL_STATE.Create), []);
   const showModalForEdit = useCallback(() => setModalState(MODAL_STATE.Edit), []);
 
+  
   return (<Container>
     <EditNoteModal
       visible={Boolean(modalState)}
