@@ -16,6 +16,7 @@ export enum Actions {
   SetLoading,
   SetNotes,
   UpdateNote,
+  DeleteNote,
 }
 
 export type DispatchArg = {
@@ -28,11 +29,27 @@ export const reducer = (state: MainCtx, arg: DispatchArg): MainCtx => {
     case Actions.SetLoading:
       return { ...state, isLoading: arg.payload };
     case Actions.SetNotes:
-      return { ...state, notes: arg.payload as Note[] };
+      const newNotes = (arg.payload as Note[]).sort((first, second) => (first.id || 0) - (second.id || 0));
+      return { ...state, notes: newNotes };
     case Actions.UpdateNote:
       const updatedNote = arg.payload as Note;
       const { id } = updatedNote;
-      return { ...state, notes: state.notes?.map((n) => n.id === id ? updatedNote : n) };
+      const updatedNotes = (() => {
+        let updated = false;
+        const result = state.notes?.map((n) => {
+          if (n.id === id) {
+            updated = true;
+            return updatedNote;
+           } else {
+             return n;
+          };
+        });
+        return updated ? result : state.notes?.concat(updatedNote);  
+      })();
+      return { ...state, notes: updatedNotes };
+    case Actions.DeleteNote:
+      const deletedId = (arg.payload as Note).id
+      return { ...state, notes: state.notes?.filter((n) => deletedId !== n.id)}
     default:
       return state;
   }

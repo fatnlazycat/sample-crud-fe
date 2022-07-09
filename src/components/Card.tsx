@@ -1,14 +1,16 @@
-import Card from 'antd/lib/card/Card';
 import React from 'react';
-import { Note } from '~/entity/note';
-import { NoteTitle } from './cardStyles';
+import { Note } from '../entity/note';
+import { NoteTitle, StyledCard } from './cardStyles';
 
 type Props = {
-  note: Note
+  note: Note;
+  key: any;
 }
 
-export const NoteCard = ({ note }: Props): JSX.Element => {
-  return (<Card>
-    <NoteTitle>{note.text}</NoteTitle>
-  </Card>)
+export const NoteCard = ({ note, key }: Props): JSX.Element => {
+  return (<div key={key}>
+    <StyledCard>
+      <NoteTitle>{note.text}</NoteTitle>
+    </StyledCard>
+  </div>)
 }

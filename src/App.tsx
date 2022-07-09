@@ -1,9 +1,10 @@
-import React, { useReducer, useState } from 'react';
-import 'dotenv/config'
+import React, { useReducer } from 'react';
+import 'antd/dist/antd.min.css';
 import { Layout, Spin } from 'antd';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { MainContext, MainCtx, reducer } from './mainContext';
 import { List } from './components/List';
+import styled from 'styled-components';
 
 function App(): JSX.Element {
   const [mainCtxState, dispatch] = useReducer(reducer, {} as MainCtx);
@@ -20,13 +21,11 @@ function App(): JSX.Element {
           spinning={mainCtxState.isLoading}
           size='large'
         >
-          <Layout>
+          <StyledLayout>
             <Routes>
-              <Route path='/'>
-                <List />
-              </Route>
+              <Route path='/' element={<List />} />
             </Routes>
-          </Layout>
+          </StyledLayout>
         </Spin>
       </BrowserRouter>
     </MainContext.Provider>
@@ -34,3 +33,9 @@ function App(): JSX.Element {
 }
 
 export default App;
+
+const StyledLayout = styled(Layout)`
+  width: 100%;
+  height: 90vh;
+  background-color: aliceblue;
+`;

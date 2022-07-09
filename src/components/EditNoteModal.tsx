@@ -1,21 +1,22 @@
-import { Button, Input, Modal } from "antd";
+import { Button, Input } from "antd";
 import React, { useCallback, useEffect, useState } from "react";
-import { Note } from "~/entity/note";
-import { EditNoteModalContent } from "./editNoteModalStyles";
+import { Note } from "../entity/note";
+import { EditNoteModalContent, StyledModal } from "./editNoteModalStyles";
 
 type Props = {
   visible: boolean;
   note: Note;
   onSubmit: (note: Note) => void;
+  onCancel: () => void;
 }
 
-export const EditNoteModal = ({ visible, note, onSubmit }: Props): JSX.Element => {
+export const EditNoteModal = ({ visible, note, onSubmit, onCancel }: Props): JSX.Element => {
   const [text, setText] = useState('');
   const [changed, setChanged] = useState(false);
 
   useEffect(() => {
     const newText = note.text;
-    newText && setText(newText);
+    setText(newText);
   }, [note]);
   
   const onTextChanged = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,13 +25,19 @@ export const EditNoteModal = ({ visible, note, onSubmit }: Props): JSX.Element =
   }, [changed]);
 
   const submit = useCallback(() => {
-    if (changed) {
+    if (changed && text) {
       const updatedNote = { ...note, text };
       onSubmit(updatedNote);
     }
   }, [changed, note, onSubmit, text])
 
-  return (<Modal visible={visible}>
+  return (<StyledModal
+    visible={visible}
+    title='Enter the note message'
+    destroyOnClose={true}
+    footer={null}
+    onCancel={onCancel}
+  >
     <EditNoteModalContent>
       <Input
         value={text}
@@ -38,5 +45,5 @@ export const EditNoteModal = ({ visible, note, onSubmit }: Props): JSX.Element =
       />
     </EditNoteModalContent>
     <Button onClick={submit}>Submit</Button>
-  </Modal>);
+  </StyledModal>);
 };
