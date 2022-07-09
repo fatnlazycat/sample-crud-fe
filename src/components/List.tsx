@@ -114,7 +114,7 @@ export const List = (): JSX.Element => {
   const showModalForCreate = useCallback(() => setModalState(MODAL_STATE.Create), []);
   const showModalForEdit = useCallback(() => setModalState(MODAL_STATE.Edit), []);
 
-  
+
   return (<Container>
     <EditNoteModal
       visible={Boolean(modalState)}
@@ -122,7 +122,7 @@ export const List = (): JSX.Element => {
       onSubmit={onModalSubmit}
       onCancel={() => setModalState(MODAL_STATE.Hidden)}
     />
-    <Title>Sample CRUD test-task for Creative Insurance</Title>
+    <Title>Sample CRUD test-task for Connected Insurance</Title>
     <CarouselContainer>
       <StyledCarousel
         ref={carouselRef}
