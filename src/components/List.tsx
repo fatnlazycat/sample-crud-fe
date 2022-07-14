@@ -1,7 +1,7 @@
 import { DeleteOutlined, EditOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { Button, Switch } from 'antd';
-import { CarouselRef } from 'antd/lib/carousel';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { find } from 'lodash';
 import { Note } from '../entity/note';
 import { Actions, MainContext } from '../mainContext';
 import { useApiCall } from '../network/useApiCall';
@@ -30,35 +30,26 @@ export const List = (): JSX.Element => {
   }, deleteNote] = useApiCall('');
 
   const { mainCtxState, dispatch } = useContext(MainContext);
-  const [currentNote, setCurrentNote] = useState<Note>();
+  
   const [modalState, setModalState] = useState(MODAL_STATE.Hidden);
-  const [newNoteId, setNewNoteId] = useState(0);
+  const [currentNoteId, setCurrentNoteId] = useState<number>(0);
 
   const notes = useMemo(() => mainCtxState.notes || [], [mainCtxState]);
+  const currentNote = useMemo(() => find(notes, ['id', currentNoteId]) || new Note(), [notes, currentNoteId]);
 
-  const carouselRef = useRef<CarouselRef>(null);
-
-  useEffect(() => {
-    setCurrentNote((prev) => {
-      let idToSet: number | undefined;
-      if (newNoteId) {
-        idToSet = newNoteId;
-        setNewNoteId(0);
-      } else {
-        idToSet = prev?.id;
-      }
-      return notes.find((n) => n.id === idToSet) || notes[0]}
-    );
-  }, [notes, newNoteId]);
-
+  // effects
   useEffect(() => {
     getNotes();
   }, [getNotes]);
 
   useEffect(() => {
+    (!currentNoteId && notes[0]?.id) && setCurrentNoteId(notes[0].id);
+  }, [notes, currentNoteId]);
+
+  useEffect(() => {
     const reducedLoading = gettingAllNotes || savingNote || isDeleting;
     dispatch({ action: Actions.SetLoading, payload: reducedLoading })
-  }, [dispatch, gettingAllNotes, savingNote, isDeleting])
+  }, [dispatch, gettingAllNotes, savingNote, isDeleting]);
 
   useEffect(() => {
     const { data } = allNotesResponse || {};
@@ -66,30 +57,25 @@ export const List = (): JSX.Element => {
   }, [allNotesResponse, dispatch]);
 
   useEffect(() => {
-    if (saveNoteResponse) {
-      const savedId = saveNoteResponse.id;
-      savedId && setNewNoteId(savedId)
-      dispatch({ action: Actions.UpdateNote, payload: saveNoteResponse });
-    }
-  }, [saveNoteResponse, dispatch]);
-
-  useEffect(() => {
     const { data } = deleteResponse || {};
     data && dispatch({ action: Actions.DeleteNote, payload: data });
   }, [deleteResponse, dispatch]);
 
+  useEffect(() => {
+    if (saveNoteResponse) {
+      const savedId = saveNoteResponse.id;
+      console.log('saveNoteResponse effect, savedId=', savedId);
+      savedId && setCurrentNoteId(savedId)
+      dispatch({ action: Actions.UpdateNote, payload: saveNoteResponse });
+    }
+  }, [saveNoteResponse, dispatch]);
+
   const noteForModal = useMemo(() => 
-    (modalState === MODAL_STATE.Edit && currentNote) ? currentNote : new Note(),
+    modalState === MODAL_STATE.Edit ? currentNote : new Note(),
     [modalState, currentNote]
   );
 
-  useEffect(() => {
-    const currentId = currentNote?.id;
-    const index = Math.max(notes.findIndex((n) => n.id === currentId), 0);
-    carouselRef.current?.goTo(index, false);
-  }, [currentNote, notes, carouselRef]);
 
-  
   // callbacks
   const onModalSubmit = useCallback((note: Note) => {
     saveNote(note);
@@ -97,7 +83,7 @@ export const List = (): JSX.Element => {
   }, [saveNote]);
 
   const onScroll = useCallback((from: number, to: number) => {
-    if (from !== to) setCurrentNote(notes[to]);
+    if (from !== to) setCurrentNoteId(notes[to].id || 0);
   }, [notes]);
 
   const onCompletedPress = useCallback((checked: boolean) => {
@@ -105,15 +91,14 @@ export const List = (): JSX.Element => {
   }, [saveNote, currentNote]);
 
   const onDelete = useCallback(() => {
-    currentNote && deleteNote({
-      url: `${process.env.REACT_APP_BASE_URL}/notes/${currentNote.id}`,
+    currentNoteId && deleteNote({
+      url: `${process.env.REACT_APP_BASE_URL}/notes/${currentNoteId}`,
       method: 'delete',
     });
-  }, [deleteNote, currentNote]);
+  }, [deleteNote, currentNoteId]);
 
   const showModalForCreate = useCallback(() => setModalState(MODAL_STATE.Create), []);
   const showModalForEdit = useCallback(() => setModalState(MODAL_STATE.Edit), []);
-
 
   return (<Container>
     <EditNoteModal
@@ -125,14 +110,14 @@ export const List = (): JSX.Element => {
     <Title>Sample CRUD test-task for Connected Insurance</Title>
     <CarouselContainer>
       <StyledCarousel
-        ref={carouselRef}
+        initialSlide={Math.max(notes.findIndex((n) => n.id === currentNoteId), 0)}
         beforeChange={onScroll}
       >
         {notes.map((note, index) => <NoteCard key={index} note={note}/>)}
     </StyledCarousel>
     </CarouselContainer>
 
-    {currentNote && <SwitchContainer>
+    <SwitchContainer>
       <CompletedLabel>
         Completed ?
       </CompletedLabel>
@@ -140,7 +125,7 @@ export const List = (): JSX.Element => {
         checked={currentNote.completed}
         onChange={onCompletedPress}
       />
-    </SwitchContainer>}
+    </SwitchContainer>
     <ButtonsContainer>
       <Button
         onClick={showModalForCreate}

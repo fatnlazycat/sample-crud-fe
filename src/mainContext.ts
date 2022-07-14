@@ -28,9 +28,11 @@ export const reducer = (state: MainCtx, arg: DispatchArg): MainCtx => {
   switch (arg.action) {
     case Actions.SetLoading:
       return { ...state, isLoading: arg.payload };
+      
     case Actions.SetNotes:
       const newNotes = (arg.payload as Note[]).sort((first, second) => (first.id || 0) - (second.id || 0));
       return { ...state, notes: newNotes };
+
     case Actions.UpdateNote:
       const updatedNote = arg.payload as Note;
       const { id } = updatedNote;
@@ -47,9 +49,11 @@ export const reducer = (state: MainCtx, arg: DispatchArg): MainCtx => {
         return updated ? result : state.notes?.concat(updatedNote);  
       })();
       return { ...state, notes: updatedNotes };
+
     case Actions.DeleteNote:
       const deletedId = (arg.payload as Note).id
       return { ...state, notes: state.notes?.filter((n) => deletedId !== n.id)}
+
     default:
       return state;
   }
